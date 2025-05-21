@@ -45,15 +45,15 @@ make start
 
 ```text
 .
-├── docs/               # Документация
-├── models/             # Скачанные модели Ollama
-├── pgadmin/            # Настройки pgAdmin
-├── data/               # Выходные файлы от n8n
-├── docker-compose.yml  # Основные сервисы
+├── docs/                  # Документация
+├── models/                # Скачанные модели Ollama
+├── pgadmin/               # Настройки pgAdmin
+├── data/                  # Выходные файлы от n8n
+├── docker-compose.yml     # Основные сервисы
 ├── docker-compose-ai.yml  # AI модели (Ollama)
-├── Makefile            # Скрипт запуска
-├── .env                # Переменные окружения
-└── README.md           # Текущая документация
+├── Makefile               # Скрипт запуска
+├── .env                   # Переменные окружения
+└── README.md              # Текущая документация
 ```
 
 ---
