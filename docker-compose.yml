@@ -60,6 +60,7 @@ services:
       - OFFLOAD_MANUAL_EXECUTIONS_TO_WORKERS=${OFFLOAD_MANUAL_EXECUTIONS_TO_WORKERS}
     volumes:
       - n8n_data:/home/node/.n8n
+      - ./data:/data 
     depends_on:
       postgres:
         condition: service_healthy
