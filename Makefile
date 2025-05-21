@@ -1,4 +1,4 @@
-full-start:
+start:
 	@echo "Creating models directory if not exists..."
 	@if not exist models mkdir models
 	@if not exist data mkdir data

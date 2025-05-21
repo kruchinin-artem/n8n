@@ -5,7 +5,7 @@
 
 ```bash
 # Запуск всех сервисов (n8n + AI)
-make full-start
+make start
 ```
 
 ---

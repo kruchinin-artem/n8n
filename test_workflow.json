@@ -1,0 +1,233 @@
+{
+  "name": "My workflow 2",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "673a32f6-bf50-4aa1-ae2d-21e72800b9eb",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      model: \"llama3\",\n      prompt: \"О чем шумят деревья? Ответ должен быть на русском языке\",\n      stream: false\n    }\n  },\n  {\n    json: {\n      model: \"codellama\",\n      prompt: \"О чем шумят деревья? Ответ должен быть на русском языке\",\n      stream: false\n    }\n  },\n  {\n    json: {\n      model: \"gemma\",\n      prompt: \"О чем шумят деревья? Ответ должен быть на русском языке\",\n      stream: false\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        200,
+        0
+      ],
+      "id": "b5b28252-b455-47dd-9435-59d12e2873b6",
+      "name": "Code",
+      "alwaysOutputData": true,
+      "retryOnFail": false,
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://ollama:11434/api/generate",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{$json}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        0
+      ],
+      "id": "9ae8923f-3865-4599-a17e-f17729221f73",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://ollama:11434/api/generate",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{$json}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1100,
+        0
+      ],
+      "id": "a58fe0bf-ac0d-4eff-9d9f-dbbcc57bc3db",
+      "name": " Select Best",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  return {\n    json: {\n      model: item.json.model,\n      response: item.json.response || 'NO RESPONSE'\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        0
+      ],
+      "id": "3ac17752-40a4-48f4-872c-d7322d89b10d",
+      "name": "Extract Response",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "let responses = items.map((item) => {\n  return `Ответ от модели ${item.json.model.toUpperCase()}:\n---\n${item.json.response}\n`;\n}).join('\\n\\n');\n\nlet prompt = `Ты — языковая модель и эксперт по качеству текстов.\nВот несколько ответов от разных моделей на один и тот же вопрос.\n\nПроанализируй каждый ответ, возьми лучшее из каждого и предоставь новый интересный ответ.\nОтвет должен быть на русском языке и без спецсимволов. Просто сгенерируй лучший ответ без рассуждений.\n...\n\n\n${responses}`;\n\nreturn [\n  {\n    json: {\n      model: \"llama3\",\n      prompt: prompt,\n      stream: false\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        0
+      ],
+      "id": "d46f3529-934a-45b0-8132-234a00e18d96",
+      "name": "Create Comparison Prompt"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/data/answer.txt",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        1540,
+        0
+      ],
+      "id": "74f0090d-bdf0-48f8-9806-12e8344d1437",
+      "name": "Read/Write Files from Disk"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => ({\n  binary: {\n    data: {\n      data: Buffer.from(item.json.response, 'utf8').toString('base64'),\n      mimeType: 'text/plain',\n      fileName: 'response.txt'\n    }\n  },\n  json: {}\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        0
+      ],
+      "id": "1a2e0617-d233-4514-8692-d21be5e1b726",
+      "name": "To Binary File",
+      "retryOnFail": true
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Extract Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Response": {
+      "main": [
+        [
+          {
+            "node": "Create Comparison Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Comparison Prompt": {
+      "main": [
+        [
+          {
+            "node": " Select Best",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    " Select Best": {
+      "main": [
+        [
+          {
+            "node": "To Binary File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "To Binary File": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "082f7513-550f-4dcb-89f9-8387929efcee",
+  "meta": {
+    "instanceId": "ced293f7c3db637a6c2de17686e83bef116e838afa2e162f7ee77763d5e05f93"
+  },
+  "id": "JHd9cahMACKXIs1m",
+  "tags": []
+}
