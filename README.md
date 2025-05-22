@@ -28,16 +28,20 @@ make start
 Это выполнит:
 1. Запуск базы данных PostgreSQL и Redis
 2. Запуск core-сервисов n8n + pgAdmin
-3. Поднятие Ollama с моделями:
-   - llama3
-   - mistral
-   - gemma
-   - codellama
-   - phi
-   - orca-mini
-   - dolphin-mixtral
+3. Поднятие Ollama и DeepSeek:
+   - Ollama:
+     - llama3
+     - mistral
+     - gemma
+     - codellama
+     - phi
+     - orca-mini
+     - dolphin-mixtral
+   - DeepSeek (через HuggingFace):
+     - deepseek-ai/deepseek-llm-7b-chat
 4. Загрузка моделей при первом запуске
 5. n8n будет доступен по адресу: [http://localhost:5678](http://localhost:5678)
+6. DeepSeek API доступен по адресу: [http://localhost:5000](http://localhost:5000)
 
 ---
 
@@ -89,4 +93,4 @@ MIT — свободно для личного и коммерческого и�
 
 ---
 
-_Обновлено: 2025-05-21_
+_Обновлено: 2025-05-22_

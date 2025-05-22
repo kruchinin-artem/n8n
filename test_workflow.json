@@ -113,7 +113,7 @@
     {
       "parameters": {
         "operation": "write",
-        "fileName": "/data/answer.txt",
+        "fileName": "/home/node/data",
         "options": {}
       },
       "type": "n8n-nodes-base.readWriteFile",
@@ -127,7 +127,7 @@
     },
     {
       "parameters": {
-        "jsCode": "return items.map(item => ({\n  binary: {\n    data: {\n      data: Buffer.from(item.json.response, 'utf8').toString('base64'),\n      mimeType: 'text/plain',\n      fileName: 'response.txt'\n    }\n  },\n  json: {}\n}));"
+        "jsCode": "return items.map(item => ({\n  binary: {\n    data: {\n      data: Buffer.from(item.json.response, 'utf8').toString('base64'),\n      mimeType: 'text/plain',\n      fileName: 'answer.txt'\n    }\n  }\n}));"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -224,7 +224,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "082f7513-550f-4dcb-89f9-8387929efcee",
+  "versionId": "9a5815da-baf8-49b4-9af6-75e8ceb94692",
   "meta": {
     "instanceId": "ced293f7c3db637a6c2de17686e83bef116e838afa2e162f7ee77763d5e05f93"
   },

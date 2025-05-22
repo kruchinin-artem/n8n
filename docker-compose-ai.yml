@@ -11,3 +11,22 @@ services:
       - ./models:/root/.ollama
     environment:
       - OLLAMA_NUM_GPU=1
+
+  deepseek-api:
+    build: ./ai_phyton
+    command: uvicorn main:app --host 0.0.0.0 --port 5000
+    volumes:
+      - ./models:/root/.cache/huggingface/hub  # Кэширование моделей
+    environment:
+      - HF_HOME=/root/.cache/huggingface/hub
+      - DEEPSEEK_MODEL_NAME=deepseek-ai/deepseek-llm-7b-chat
+      - DEEPSEEK_USE_4BIT=True
+    ports:
+      - "5000:5000"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]

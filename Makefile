@@ -26,3 +26,10 @@ start:
 	@echo "All systems ready!"
 	@echo "n8n: http://localhost:5678"
 	@echo "Ollama: http://localhost:11434"
+	@echo "DeepSeek:  http://localhost:5000"
+
+
+
+build:
+	docker-compose -f docker-compose.yml build
+	docker-compose -f docker-compose-ai.yml build
