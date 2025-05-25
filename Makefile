@@ -7,11 +7,11 @@ start:
 	@powershell -Command "icacls data /grant Everyone:F" || echo "Permission fix skipped (non-Windows)"
 
 	@echo "Starting database services..."
-	docker compose up -d postgres redis
+	docker compose up -d postgres redis app-postgres mongo
 	@powershell -Command "Start-Sleep -Seconds 10"
 
 	@echo "Starting n8n core services..."
-	docker compose up -d n8n worker pgadmin
+	docker compose up -d n8n worker pgadmin mongo-express
 
 	@echo "Starting AI models..."
 	docker compose -f docker-compose-ai.yml up -d
@@ -28,8 +28,9 @@ start:
 
 	@echo "All systems ready!"
 	@echo "n8n: http://localhost:5678"
-	@echo "Ollama: http://localhost:11434"
-	@echo "DeepSeek: http://localhost:5000"
+	@echo "pgAdmin: http://localhost:8080"
+	@echo "Mongo Express: http://localhost:8081"
+
 
 
 
