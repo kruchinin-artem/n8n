@@ -4,7 +4,7 @@ services:
   postgres:
     container_name: postgres
     image: postgres:16
-    restart: always
+    restart: on-failure
     env_file: .env
     environment:
       - POSTGRES_USER
@@ -23,7 +23,7 @@ services:
   redis:
     container_name: redis
     image: redis:7-alpine
-    restart: always
+    restart: on-failure
     volumes:
       - n8n_redis_data:/data
     healthcheck:
@@ -37,7 +37,7 @@ services:
   n8n:
     container_name: n8n
     image: docker.n8n.io/n8nio/n8n:latest
-    restart: always
+    restart: on-failure
     ports:
       - "5678:5678"
     env_file: .env
@@ -60,7 +60,7 @@ services:
       - OFFLOAD_MANUAL_EXECUTIONS_TO_WORKERS=${OFFLOAD_MANUAL_EXECUTIONS_TO_WORKERS}
     volumes:
       - n8n_data:/home/node/.n8n
-      - ./data:/data 
+      - ./data:/home/node/data
     depends_on:
       postgres:
         condition: service_healthy
@@ -70,7 +70,7 @@ services:
   worker:
     container_name: worker
     image: docker.n8n.io/n8nio/n8n:latest
-    restart: always
+    restart: on-failure
     env_file: .env
     command: worker
     environment:
@@ -84,6 +84,9 @@ services:
       - QUEUE_BULL_REDIS_HOST=${REDIS_HOST}
       - QUEUE_HEALTH_CHECK_ACTIVE=true
       - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./data:/home/node/data
     depends_on:
       postgres:
         condition: service_healthy
@@ -93,7 +96,7 @@ services:
   pgadmin:
     container_name: pgadmin
     image: dpage/pgadmin4:latest
-    restart: always
+    restart: on-failure
     env_file: .env
     ports:
       - "8080:80"

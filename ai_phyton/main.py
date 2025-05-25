@@ -28,15 +28,21 @@ async def generate(request: Request):
         "text-generation",
         model=model,
         tokenizer=tokenizer,
+        device_map="auto"
     )
     
     result = generator(
         request.text,
-        max_new_tokens=request.max_tokens,
-        temperature=0.7
+        max_new_tokens=min(request.max_tokens, 300),  # Защита от слишком длинных запросов
+        temperature=0.8,  # Оптимально для креативных задач
+        do_sample=True,
+        top_k=50,
+        top_p=0.9
     )
     
-    return {"response": result[0]["generated_text"]}
+    # Очистка повторяющихся фраз
+    clean_text = result[0]["generated_text"].split('\n')[0]
+    return {"response": clean_text}
 
 @app.get("/health")
 async def health():

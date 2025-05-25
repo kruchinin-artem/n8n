@@ -1,5 +1,5 @@
 {
-  "name": "My workflow 2",
+  "name": "My workflow",
   "nodes": [
     {
       "parameters": {},
@@ -7,22 +7,22 @@
       "typeVersion": 1,
       "position": [
         0,
-        0
+        15
       ],
-      "id": "673a32f6-bf50-4aa1-ae2d-21e72800b9eb",
+      "id": "6988a32c-eb59-47bc-beda-ef7cf3433458",
       "name": "When clicking ‘Test workflow’"
     },
     {
       "parameters": {
-        "jsCode": "return [\n  {\n    json: {\n      model: \"llama3\",\n      prompt: \"О чем шумят деревья? Ответ должен быть на русском языке\",\n      stream: false\n    }\n  },\n  {\n    json: {\n      model: \"codellama\",\n      prompt: \"О чем шумят деревья? Ответ должен быть на русском языке\",\n      stream: false\n    }\n  },\n  {\n    json: {\n      model: \"gemma\",\n      prompt: \"О чем шумят деревья? Ответ должен быть на русском языке\",\n      stream: false\n    }\n  }\n];\n"
+        "jsCode": "return [\n  {\n    json: {\n      model: \"codellama\",\n      prompt: \"О чем шумят деревья? Ответ должен быть на русском языке\",\n      stream: false\n    }\n  },\n  {\n    json: {\n      model: \"gemma\",\n      prompt: \"О чем шумят деревья? Ответ должен быть на русском языке\",\n      stream: false\n    }\n  },\n  {\n    json: {\n      model: \"mistral:7b-instruct-q4_0\",\n      prompt: \"О чем шумят деревья? Ответ должен быть на русском языке\",\n      stream: false\n    }\n  }\n];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        200,
-        0
+        220,
+        15
       ],
-      "id": "b5b28252-b455-47dd-9435-59d12e2873b6",
+      "id": "6a62a53c-eb99-465e-a9aa-59a650fb6122",
       "name": "Code",
       "alwaysOutputData": true,
       "retryOnFail": false,
@@ -50,9 +50,9 @@
       "typeVersion": 4.2,
       "position": [
         440,
-        0
+        -85
       ],
-      "id": "9ae8923f-3865-4599-a17e-f17729221f73",
+      "id": "15c4777c-4a14-48ea-b497-197abb7fc7e7",
       "name": "HTTP Request"
     },
     {
@@ -76,10 +76,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1100,
-        0
+        1320,
+        15
       ],
-      "id": "a58fe0bf-ac0d-4eff-9d9f-dbbcc57bc3db",
+      "id": "5ac3f170-afb5-4fc9-b71a-9e69b3a9faf9",
       "name": " Select Best",
       "retryOnFail": true
     },
@@ -91,38 +91,41 @@
       "typeVersion": 2,
       "position": [
         660,
-        0
+        -85
       ],
-      "id": "3ac17752-40a4-48f4-872c-d7322d89b10d",
+      "id": "d576e282-bd79-4da0-8b66-bd0ecece7e2c",
       "name": "Extract Response",
       "retryOnFail": true
     },
     {
       "parameters": {
-        "jsCode": "let responses = items.map((item) => {\n  return `Ответ от модели ${item.json.model.toUpperCase()}:\n---\n${item.json.response}\n`;\n}).join('\\n\\n');\n\nlet prompt = `Ты — языковая модель и эксперт по качеству текстов.\nВот несколько ответов от разных моделей на один и тот же вопрос.\n\nПроанализируй каждый ответ, возьми лучшее из каждого и предоставь новый интересный ответ.\nОтвет должен быть на русском языке и без спецсимволов. Просто сгенерируй лучший ответ без рассуждений.\n...\n\n\n${responses}`;\n\nreturn [\n  {\n    json: {\n      model: \"llama3\",\n      prompt: prompt,\n      stream: false\n    }\n  }\n];\n"
+        "jsCode": "// Разделяем данные на ответы моделей и оригинальный промпт\nconst { models, originalPrompt } = items.reduce((acc, item) => {\n  if (item.json.originalPrompt) {\n    acc.originalPrompt = item.json.originalPrompt;\n  } else if (item.json.model && item.json.response) {\n    acc.models.push({\n      model: item.json.model,\n      response: item.json.response\n        .trim()\n        .replace(/\\n+/g, ' ')\n        .replace(/\\s{2,}/g, ' ')\n    });\n  }\n  return acc;\n}, { models: [], originalPrompt: '' });\n\n// Форматируем ответы моделей\nconst responses = models\n  .map(m => `[${m.model.toUpperCase()}]\\n${m.response}`)\n  .join('\\n\\n▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰\\n\\n');\n\n// Собираем промпт\nconst prompt = `Ты — главный редактор. Создай идеальный ответ, объединив эти варианты:\n\n**Тема вопроса:**\n\"${originalPrompt || \"Неизвестная тема\"}\"\n\n**Предложения моделей:**\n${responses}\n\n**Инструкции:**\n1. Проанализируй все варианты, найди:\n   - Общие идеи\n   - Уникальные дополнения\n   - Противоречия\n2. Синтезируй ответ, который:\n   - Сохраняет ключевые идеи из каждого варианта\n   - Устраняет противоречия\n   - Использует разговорный русский язык\n3. Формат:\n   - 2-3 предложения\n   - Без технических терминов\n   - Естественная стилистика\n4. Добавить исходный вопрос к ответу:\n   - Использовать тему вопроса\n   - Разрешается отформатировать вопрос, для более понятного смысла\n   \n**Финальная версия:**`;\n\nreturn [{\n  json: {\n    model: \"llama3\",\n    prompt: prompt,\n    stream: false\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        880,
-        0
+        1100,
+        15
       ],
-      "id": "d46f3529-934a-45b0-8132-234a00e18d96",
-      "name": "Create Comparison Prompt"
+      "id": "8e97b95c-2e6f-4388-8173-d8eaf1a2c3b3",
+      "name": "Create Comparison Prompt",
+      "retryOnFail": true,
+      "executeOnce": false
     },
     {
       "parameters": {
         "operation": "write",
-        "fileName": "/home/node/data",
+        "fileName": "=/home/node/data/{{ $json.fileName }}",
+        "dataPropertyName": "=data",
         "options": {}
       },
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1,
       "position": [
-        1540,
-        0
+        2860,
+        15
       ],
-      "id": "74f0090d-bdf0-48f8-9806-12e8344d1437",
+      "id": "aec103c2-bd42-45db-927d-42a7c9e7c8ae",
       "name": "Read/Write Files from Disk"
     },
     {
@@ -132,12 +135,130 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1320,
-        0
+        2420,
+        -85
       ],
-      "id": "1a2e0617-d233-4514-8692-d21be5e1b726",
+      "id": "3ebd3acd-16da-465a-82ea-2efe8e8b061a",
       "name": "To Binary File",
       "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "command": "mkdir -p /home/node/data\n"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        2420,
+        115
+      ],
+      "id": "c2e7b8cb-df72-4227-8c4d-60013f8c8ddf",
+      "name": "Ensure /data exists"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    originalPrompt: items[0].json.prompt\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        115
+      ],
+      "id": "643959e7-fc4d-424f-960c-f969a6a9c761",
+      "name": "Store Prompt"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        880,
+        15
+      ],
+      "id": "63091f8e-705a-4b0c-b7f5-8ab8cccd9302",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Генерируем уникальное имя файла\nconst timestamp = new Date()\n  .toISOString()\n  .replace(/[:.]/g, \"-\")\n  .replace(\"T\", \"_\")\n  .slice(0, 19);\nconst fileName = `answer_${timestamp}_${Math.floor(Math.random()*1000)}.txt`;\nconst filePath = `/home/node/data/${fileName}`;\n\n// Получаем бинарные данные из входа\nconst binaryData = items[0].binary?.data || {\n  data: Buffer.from(items[0].json.response || '', 'utf8').toString('base64'),\n  mimeType: 'text/plain',\n  fileName: fileName\n};\n\n// Формируем выходные данные\nreturn [{\n  json: {\n    filePath: filePath,\n    fileName: fileName,\n    fileSize: Buffer.from(binaryData.data, 'base64').length\n  },\n  binary: {\n    data: {\n      data: binaryData.data,\n      mimeType: binaryData.mimeType || 'text/plain',\n      fileName: fileName // Важно переопределить имя файла\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2640,
+        15
+      ],
+      "id": "5c7e4141-9e4c-4683-b1ee-2ebbff052ae8",
+      "name": "File Path"
+    },
+    {
+      "parameters": {
+        "jsCode": "const bestAnswer = items[0].json.response.replace(/\"/g, '\\\\\"');\nconst prompt = `[Инструкция]\n1. Проанализируй текст ниже\n2. Развий идею в 3-5 предложений\n3. Добавь 1-2 метафоры\n4. Стиль: художественный, но естественный\n5. Ответь ТОЛЬКО финальным текстом без пояснений\n\n[Исходный текст]\n${bestAnswer}\n\n[Пример вывода]\n\"Деревья шепчутся как старые друзья, передавая ветру свои секреты...\"\n\n[Твой ответ]:`;\n\nreturn [{\n  json: {\n    text: prompt,\n    max_tokens: 300,\n    temperature: 0.7\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1540,
+        15
+      ],
+      "id": "076b6895-f180-48ac-bb87-5369d11ead27",
+      "name": "Create DeepSeek Prompt",
+      "retryOnFail": true,
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "jsCode": "const payload = {\n  text: items[0].json.text,\n  max_tokens: items[0].json.max_tokens,\n  \"temperature\": items[0].json.temperature,\n  \"stop\": [\"[\", \"Инструкция]\", \"Исходный текст\"]\n};\n\nreturn [{\n  json: {\n    preparedPayload: JSON.stringify(payload)\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1760,
+        15
+      ],
+      "id": "83f263ed-e17b-4f2c-bbc6-bbdfe052869c",
+      "name": "To Json promt DeepSeek"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://deepseek-api:5000/generate",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{$json.preparedPayload}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1980,
+        15
+      ],
+      "id": "a890bb55-4c4f-42ca-9e4f-cf3f3ed21a75",
+      "name": "DeepSeek creativity"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Очищаем ответ от возможных артефактов\nconst rawResponse = items[0].json.response;\nconst cleanResponse = rawResponse\n  .replace(/^.*\\[Твой ответ\\]:/s, '') // Удаляем все до метки\n  .trim();\n\nreturn [{\n  json: {\n    response: cleanResponse,\n    original_prompt: items[0].json.text\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2200,
+        15
+      ],
+      "id": "ab9c82ef-721f-4bbb-8545-be3b5168a089",
+      "name": "Fix response"
     }
   ],
   "pinData": {},
@@ -160,6 +281,11 @@
             "node": "HTTP Request",
             "type": "main",
             "index": 0
+          },
+          {
+            "node": "Store Prompt",
+            "type": "main",
+            "index": 0
           }
         ]
       ]
@@ -179,7 +305,7 @@
       "main": [
         [
           {
-            "node": "Create Comparison Prompt",
+            "node": "Merge",
             "type": "main",
             "index": 0
           }
@@ -201,7 +327,7 @@
       "main": [
         [
           {
-            "node": "To Binary File",
+            "node": "Create DeepSeek Prompt",
             "type": "main",
             "index": 0
           }
@@ -212,7 +338,105 @@
       "main": [
         [
           {
+            "node": "File Path",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk": {
+      "main": [
+        []
+      ]
+    },
+    "Store Prompt": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Create Comparison Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "File Path": {
+      "main": [
+        [
+          {
             "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ensure /data exists": {
+      "main": [
+        [
+          {
+            "node": "File Path",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create DeepSeek Prompt": {
+      "main": [
+        [
+          {
+            "node": "To Json promt DeepSeek",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "To Json promt DeepSeek": {
+      "main": [
+        [
+          {
+            "node": "DeepSeek creativity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DeepSeek creativity": {
+      "main": [
+        [
+          {
+            "node": "Fix response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fix response": {
+      "main": [
+        [
+          {
+            "node": "Ensure /data exists",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "To Binary File",
             "type": "main",
             "index": 0
           }
@@ -224,10 +448,11 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "9a5815da-baf8-49b4-9af6-75e8ceb94692",
+  "versionId": "bcd51162-93e0-4ea7-b7d7-6f67123ed417",
   "meta": {
+    "templateCredsSetupCompleted": true,
     "instanceId": "ced293f7c3db637a6c2de17686e83bef116e838afa2e162f7ee77763d5e05f93"
   },
-  "id": "JHd9cahMACKXIs1m",
+  "id": "zOE4G2ssJTIz5Vj3",
   "tags": []
 }
